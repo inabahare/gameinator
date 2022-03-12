@@ -72,13 +72,13 @@ impl Game {
 
       canvas.clear();
 
-      // for o in &mut objects {
-      //   o.update();
-      // }
+      for o in &mut self.objects {
+        o.update();
+      }
 
-      // for o in &mut objects {
-      //   o.render(&mut canvas);
-      // }
+      for o in &mut self.objects {
+        o.draw(canvas);
+      }
 
       canvas.set_draw_color(Color::RGB(0, 0, 0));
       canvas.present();
