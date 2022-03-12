@@ -1,3 +1,4 @@
+use crate::core::KeyEvent::KeyDown;
 use crate::GameObject;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
@@ -13,6 +14,7 @@ pub fn new(title: &'static str, width: u32, height: u32) -> Game {
     canvas: None,
     context: None,
     objects: Vec::new(),
+    keyDown: KeyDown::new(),
   }
 }
 
@@ -23,6 +25,7 @@ pub struct Game {
   canvas: Option<Canvas<Window>>,
   context: Option<sdl2::Sdl>,
   objects: Vec<Box<dyn GameObject>>,
+  keyDown: KeyDown,
 }
 
 impl Game {
@@ -30,6 +33,7 @@ impl Game {
     self.objects.push(Box::new(object));
   }
 
+  // TODO: Turn to new
   pub fn setup(&mut self) -> Result<&mut Game, String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
@@ -61,11 +65,11 @@ impl Game {
     'running: loop {
       for event in event_pump.poll_iter() {
         match event {
-          Event::Quit { .. }
-          | Event::KeyDown {
-            keycode: Some(Keycode::Escape),
-            ..
-          } => break 'running,
+          Event::Quit { .. } => break 'running,
+          Event::KeyDown { keycode, .. } => match keycode {
+            Some(code) => self.keyDown.add_key(code),
+            None => {}
+          },
           _ => {}
         }
       }
@@ -82,6 +86,7 @@ impl Game {
 
       canvas.set_draw_color(Color::RGB(0, 0, 0));
       canvas.present();
+      self.keyDown.clear();
     }
 
     Ok(self)
