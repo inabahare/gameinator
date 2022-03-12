@@ -5,5 +5,5 @@ use sdl2::video::Window;
 
 pub trait GameObject {
   fn update(&mut self);
-  pub fn draw(&mut self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>);
+  fn draw(&mut self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>);
 }
