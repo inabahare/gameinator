@@ -6,40 +6,23 @@ use sdl2::pixels::Color;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 
-pub fn new(title: &'static str, width: u32, height: u32) -> Game {
-  Game {
-    title,
-    width,
-    height,
-    canvas: None,
-    context: None,
-    objects: Vec::new(),
-    keyDown: KeyDown::new(),
-  }
-}
-
 pub struct Game {
   pub title: &'static str,
   pub width: u32,
   pub height: u32,
-  canvas: Option<Canvas<Window>>,
-  context: Option<sdl2::Sdl>,
+  pub canvas: Canvas<Window>,
+  context: sdl2::Sdl,
   objects: Vec<Box<dyn GameObject>>,
-  keyDown: KeyDown,
+  pub keyDown: KeyDown,
 }
 
 impl Game {
-  pub fn add_object(&mut self, object: impl GameObject + 'static) {
-    self.objects.push(Box::new(object));
-  }
-
-  // TODO: Turn to new
-  pub fn setup(&mut self) -> Result<&mut Game, String> {
+  pub fn new(title: &'static str, width: u32, height: u32) -> Result<Self, String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
 
     let window = video_subsystem
-      .window(self.title, self.width, self.height)
+      .window(title, width, height)
       .resizable()
       .build()
       .map_err(|e| e.to_string())?;
@@ -50,17 +33,25 @@ impl Game {
       .build()
       .map_err(|e| e.to_string())?;
 
-    self.canvas = Some(canvas);
-    self.context = Some(sdl_context);
+    let res = Self {
+      title,
+      width,
+      height,
+      canvas,
+      context: sdl_context,
+      objects: Vec::new(),
+      keyDown: KeyDown::new(),
+    };
 
-    Ok(self)
+    Ok(res)
+  }
+
+  pub fn add_object(&mut self, object: impl GameObject + 'static) {
+    self.objects.push(Box::new(object));
   }
 
   pub fn start(&mut self) -> Result<&mut Game, String> {
-    let context = self.context.as_ref().unwrap();
-    let canvas = self.canvas.as_mut().unwrap();
-
-    let mut event_pump = context.event_pump().map_err(|e| e.to_string())?;
+    let mut event_pump = self.context.event_pump().map_err(|e| e.to_string())?;
 
     'running: loop {
       for event in event_pump.poll_iter() {
@@ -74,18 +65,18 @@ impl Game {
         }
       }
 
-      canvas.clear();
+      self.canvas.clear();
 
-      for o in &mut self.objects {
-        o.update();
+      for o in &self.objects {
+        o.update(self);
       }
 
-      for o in &mut self.objects {
-        o.draw(canvas);
+      for o in &self.objects {
+        o.draw(self);
       }
 
-      canvas.set_draw_color(Color::RGB(0, 0, 0));
-      canvas.present();
+      self.canvas.set_draw_color(Color::RGB(0, 0, 0));
+      self.canvas.present();
       self.keyDown.clear();
     }
 

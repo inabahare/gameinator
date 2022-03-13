@@ -1,34 +1,33 @@
 extern crate sdl2;
 
-use crate::core::Game;
+use crate::core::Game::Game;
 use crate::core::GameObject::GameObject;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 
 mod core;
-
 struct Player {
     pub x: i32,
     pub y: i32,
 }
 
 impl GameObject for Player {
-    fn update(&mut self) {
-        self.y += 4;
-    }
-    fn draw(&mut self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
+    fn update(&mut self, game: &mut Game) {}
+    fn draw(&mut self, game: &mut Game) {
         let r = Rect::new(self.x, self.y, 100, 100);
-        canvas.set_draw_color(Color::RGB(255, 0, 255));
-        canvas.fill_rect(r);
+        game.canvas.set_draw_color(Color::RGB(255, 0, 255));
+
+        game.canvas.fill_rect(r);
     }
 }
 
 fn main() -> Result<(), String> {
-    let player = Player { x: 10, y: 10 };
+    let player = Player {
+        x: 800 / 2,
+        y: 600 / 2,
+    };
 
-    let mut game = Game::new("Test", 800, 600);
-
-    game.setup()?;
+    let mut game = Game::new("Test", 800, 600)?;
 
     game.add_object(player);
 
